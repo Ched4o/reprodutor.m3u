@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sintonia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.13/hls.min.js"></script>
+<style>
+  :root{
+    --bg:#0A0A0A; --bg-2:#141414; --panel:#1C1C1C; --line:#2C2C2C;
+    --text:#F4F4F4; --muted:#A3A3A3; --red:#E50914; --red-dim:#5C0A0F; --gold:#E8B84B;
+    --display:'Bebas Neue',sans-serif; --body:'Inter',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:100vh;}
+  ::-webkit-scrollbar{height:8px;width:8px;}
+  ::-webkit-scrollbar-thumb{background:#333;border-radius:4px;}
+  button{font-family:inherit;cursor:pointer;border:none;}
+  img{display:block;}
+
+  nav{
+    position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;gap:18px;
+    padding:16px 4vw;background:linear-gradient(180deg,rgba(0,0,0,.85) 0%,rgba(0,0,0,0) 100%);
+    transition:background .3s ease;
+  }
+  nav.scrolled{background:#0A0A0A;box-shadow:0 2px 12px rgba(0,0,0,.5);}
+  .logo{font-family:var(--display);font-size:28px;letter-spacing:2px;color:var(--red);flex-shrink:0;}
+  .navlinks{display:flex;gap:16px;flex-shrink:0;}
+  .navlink{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:500;color:var(--muted);padding:6px 4px;border-bottom:2px solid transparent;}
+  .navlink.active{color:var(--text);border-color:var(--red);}
+  .navlink:hover{color:var(--text);}
+  .navlink .n-count{font-family:var(--mono);font-size:10px;color:#666;}
+  .navlink.active .n-count{color:var(--gold);}
+  .navspacer{flex:1;}
+  .navfields{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
+  .field{background:rgba(0,0,0,.6);border:1px solid #3a3a3a;border-radius:4px;padding:8px 10px;color:var(--text);font-size:12px;font-family:var(--mono);outline:none;width:150px;}
+  .field:focus{border-color:var(--text);background:rgba(0,0,0,.85);width:220px;transition:width .2s;}
+  .field::placeholder{color:#777;}
+  select.field{width:150px;-webkit-appearance:none;appearance:none;cursor:pointer;}
+  .btn{background:var(--red);color:#fff;border-radius:4px;padding:8px 14px;font-weight:600;font-size:12px;white-space:nowrap;}
+  .btn:hover{background:#f6121d;}
+  .btn.ghost{background:rgba(255,255,255,.08);color:var(--text);}
+  .btn.ghost:hover{background:rgba(255,255,255,.16);}
+  #menuToggle{display:none;background:none;color:var(--text);font-size:22px;}
+
+  #importBar{display:none;position:fixed;top:64px;left:0;right:0;z-index:99;background:#0A0A0A;border-bottom:1px solid var(--line);padding:14px 4vw;}
+  #importBar.open{display:block;}
+  #importBar textarea{width:100%;min-height:100px;background:var(--panel);border:1px solid var(--line);color:var(--text);font-family:var(--mono);font-size:12px;border-radius:6px;padding:10px;}
+  #importBar .row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
+
+  .hero{position:relative;height:78vh;min-height:420px;display:flex;align-items:flex-end;padding:0 4vw 6vw;background:linear-gradient(120deg,#241010 0%,#0A0A0A 70%);overflow:hidden;}
+  .hero-bg{position:absolute;inset:0;background-size:cover;background-position:center 20%;opacity:0;transition:opacity .6s ease;filter:brightness(.55);}
+  .hero-bg.show{opacity:1;}
+  .hero::after{content:'';position:absolute;inset:0;background:linear-gradient(0deg, var(--bg) 0%, rgba(10,10,10,.2) 45%, rgba(10,10,10,.1) 100%);}
+  .hero-content{position:relative;z-index:2;max-width:640px;}
+  .hero-eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:10px;}
+  .hero-title{font-family:var(--display);font-size:clamp(38px,7vw,72px);line-height:0.95;letter-spacing:1px;margin-bottom:14px;text-shadow:0 4px 20px rgba(0,0,0,.6);}
+  .hero-desc{color:var(--text);font-size:15px;line-height:1.6;max-width:520px;margin-bottom:20px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;text-shadow:0 2px 10px rgba(0,0,0,.7);}
+  .hero-actions{display:flex;gap:12px;flex-wrap:wrap;}
+  .btn-hero{display:flex;align-items:center;gap:8px;padding:12px 24px;border-radius:5px;font-weight:700;font-size:15px;}
+  .btn-hero.play{background:var(--text);color:#000;}
+  .btn-hero.play:hover{background:rgba(255,255,255,.8);}
+  .btn-hero.info{background:rgba(120,120,120,.4);color:var(--text);}
+  .btn-hero.info:hover{background:rgba(120,120,120,.6);}
+  .hero-empty{position:relative;z-index:2;max-width:600px;}
+  .hero-empty .tuner-icon{font-size:40px;margin-bottom:14px;}
+
+  .toolbar{display:flex;align-items:center;gap:10px;padding:0 4vw;margin:-4vw 0 18px;position:relative;z-index:4;flex-wrap:wrap;}
+  .toolbar label{font-size:11px;color:var(--muted);font-family:var(--mono);}
+
+  .rows{padding:0 0 60px;margin-top:-8vw;position:relative;z-index:3;}
+  .row-block{margin-bottom:32px;position:relative;}
+  .row-head{display:flex;align-items:center;justify-content:space-between;padding:0 4vw;margin-bottom:8px;}
+  .row-head h3{font-size:18px;font-weight:700;}
+  .row-head .row-count{font-family:var(--mono);font-size:11px;color:var(--muted);}
+  .row-scroll{
+    display:flex;gap:8px;overflow-x:auto;padding:6px 4vw 20px;
+    scroll-snap-type:x proximity;min-height:270px;cursor:grab;user-select:none;
+  }
+  .row-scroll:active{cursor:grabbing;}
+  .row-scroll.live-row{min-height:150px;}
+  .row-scroll::-webkit-scrollbar{display:none;}
+  .row-scroll{scrollbar-width:none;}
+  .row-skel{color:#444;font-family:var(--mono);font-size:11px;padding:20px 4px;}
+  .row-arrow{
+    position:absolute;top:26px;bottom:20px;width:44px;z-index:6;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(90deg, rgba(10,10,10,.9), transparent);color:#fff;font-size:24px;
+    opacity:0;transition:opacity .2s ease;
+  }
+  .row-arrow.right{right:0;left:auto;background:linear-gradient(270deg, rgba(10,10,10,.9), transparent);}
+  .row-arrow.left{left:0;}
+  .row-block:hover .row-arrow{opacity:1;}
+
+  .rcard{
+    position:relative;flex:0 0 auto;width:170px;border-radius:6px;overflow:hidden;background:var(--panel);
+    cursor:pointer;transition:transform .2s ease, box-shadow .2s ease;scroll-snap-align:start;
+  }
+  .rcard.live{width:230px;}
+  .rcard:hover{transform:scale(1.1) translateY(-6px);box-shadow:0 12px 30px rgba(0,0,0,.7);z-index:5;}
+  .rcard .thumb{width:100%;aspect-ratio:2/3;object-fit:cover;background:#222;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:22px;text-align:center;padding:6px;}
+  .rcard.live .thumb{aspect-ratio:16/9;font-size:26px;}
+  .rcard .rcard-info{padding:8px 9px;}
+  .rcard .rcard-title{font-size:12px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .rcard .rcard-sub{font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:3px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;}
+  .rcard .live-badge{position:absolute;top:6px;left:6px;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;letter-spacing:.5px;z-index:2;}
+  .rcard .quality-badge{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.75);border:1px solid var(--gold);color:var(--gold);font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;letter-spacing:.5px;z-index:2;}
+
+  .load-more-card{
+    flex:0 0 auto;width:110px;border-radius:6px;background:var(--panel);display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:6px;color:var(--muted);font-size:11px;font-family:var(--mono);text-align:center;padding:10px;border:1px dashed #333;
+  }
+  .load-more-card:hover{color:var(--text);border-color:#555;}
+  .load-more-card .plus{font-size:22px;color:var(--red);}
+
+  .empty-state{padding:120px 4vw 60px;text-align:center;color:var(--muted);}
+  .empty-state .tuner-icon{font-size:48px;margin-bottom:16px;}
+  .empty-state h3{font-family:var(--display);font-size:28px;color:var(--text);margin-bottom:8px;letter-spacing:1px;}
+  .empty-state p{font-size:14px;max-width:460px;margin:0 auto;line-height:1.7;}
+
+  .cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;padding:24px 4vw 60px;}
+  .cat-card{
+    position:relative;border-radius:8px;overflow:hidden;cursor:pointer;background:linear-gradient(135deg,#2a2a2a,#141414);
+    border:1px solid var(--line);aspect-ratio:16/9;display:flex;flex-direction:column;justify-content:flex-end;padding:14px;
+    transition:transform .2s ease, border-color .2s ease;
+  }
+  .cat-card:hover{transform:translateY(-4px);border-color:var(--red);}
+  .cat-card::before{content:'';position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.78),rgba(0,0,0,.15));z-index:0;}
+  .cat-card .cat-logo{position:absolute;top:10px;right:10px;width:34px;height:34px;object-fit:contain;opacity:.9;z-index:1;}
+  .cat-card h4{position:relative;z-index:1;font-size:15px;font-weight:700;line-height:1.25;margin-bottom:4px;}
+  .cat-card .cat-count{position:relative;z-index:1;font-family:var(--mono);font-size:11px;color:var(--muted);}
+  .cat-grid .rcard{width:100%;}
+
+  .back-bar{display:flex;align-items:center;gap:14px;padding:24px 4vw 4px;flex-wrap:wrap;}
+  .back-btn{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);color:var(--text);padding:8px 14px;border-radius:6px;font-size:13px;font-weight:600;}
+  .back-btn:hover{background:rgba(255,255,255,.16);}
+  .back-bar h2{font-family:var(--display);font-size:26px;letter-spacing:1px;}
+
+  .player-overlay{position:fixed;inset:0;background:#000;z-index:200;display:none;flex-direction:column;}
+  .player-overlay.open{display:flex;}
+  .player-overlay video{width:100%;height:100%;object-fit:contain;background:#000;}
+  .player-topbar{position:absolute;top:0;left:0;right:0;z-index:2;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 24px;background:linear-gradient(180deg,rgba(0,0,0,.75),transparent);}
+  .player-topbar h4{font-size:15px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .player-topbar .live-badge{background:var(--red);font-size:10px;padding:3px 8px;border-radius:3px;margin-left:8px;}
+  .player-controls{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+  .mini-select{background:rgba(0,0,0,.6);border:1px solid #444;color:#fff;font-size:11px;border-radius:4px;padding:6px 6px;font-family:var(--mono);}
+  .icon-btn{background:rgba(0,0,0,.5);color:#fff;width:36px;height:36px;border-radius:50%;font-size:16px;flex-shrink:0;}
+  .icon-btn:hover{background:rgba(0,0,0,.8);}
+  .close-player{background:rgba(0,0,0,.5);color:#fff;font-size:20px;width:36px;height:36px;border-radius:50%;flex-shrink:0;}
+  .close-player:hover{background:rgba(0,0,0,.8);}
+
+  .next-ep-overlay{position:absolute;bottom:30px;right:30px;z-index:5;display:none;align-items:center;}
+  .next-ep-card{background:rgba(18,18,18,.96);border:1px solid var(--line);border-radius:10px;padding:16px 18px;max-width:300px;box-shadow:0 10px 30px rgba(0,0,0,.6);}
+  .next-ep-card p{font-size:11px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;}
+  .next-ep-card h4{font-size:15px;margin-bottom:12px;}
+  .next-ep-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  @media (max-width:600px){ .next-ep-overlay{left:14px;right:14px;bottom:14px;} .next-ep-card{max-width:none;} }
+
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:150;display:none;align-items:center;justify-content:center;padding:20px;}
+  .modal-bg.open{display:flex;}
+  .modal{background:#181818;border-radius:10px;max-width:640px;width:100%;max-height:88vh;overflow-y:auto;position:relative;}
+  .modal-hero{position:relative;height:260px;background-size:cover;background-position:center;display:flex;align-items:flex-end;padding:24px;}
+  .modal-hero::after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,#181818 5%,rgba(24,24,24,.1) 70%);}
+  .modal-hero h3{position:relative;z-index:2;font-family:var(--display);font-size:34px;letter-spacing:1px;}
+  .modal-close{position:absolute;top:16px;right:16px;z-index:5;background:rgba(0,0,0,.6);color:#fff;width:34px;height:34px;border-radius:50%;font-size:18px;}
+  .modal-actions{padding:0 24px;display:flex;gap:10px;margin-top:-14px;position:relative;z-index:4;margin-bottom:10px;}
+  .modal-body{padding:6px 24px 24px;font-size:13px;line-height:1.75;color:var(--muted);}
+  .modal-badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  .badge{font-family:var(--mono);font-size:11px;padding:3px 9px;border-radius:20px;border:1px solid #3a3a3a;color:var(--muted);}
+  .badge.rating{color:var(--gold);border-color:var(--gold);}
+  .badge.epg{color:#7cd0ff;border-color:#2c5b73;}
+  .modal-body strong{color:var(--text);}
+  .modal-body p{margin-bottom:4px;}
+  .season-block{margin:14px 0;}
+  .season-block h4{font-size:13px;color:var(--text);margin-bottom:8px;font-weight:700;}
+  .episode-grid{display:flex;flex-wrap:wrap;gap:6px;}
+  .ep-btn{background:var(--panel);border:1px solid #333;color:var(--muted);padding:6px 10px;border-radius:5px;font-size:12px;font-family:var(--mono);}
+  .ep-btn:hover{background:var(--red);border-color:var(--red);color:#fff;}
+
+  @media (max-width:860px){
+    .navlinks{display:none;}
+    #menuToggle{display:inline-flex;align-items:center;justify-content:center;}
+    .navfields .field{width:120px;}
+    .navfields .field:focus{width:160px;}
+    .hero{height:60vh;padding:0 5vw 14vw;}
+    .toolbar{margin-top:-16vw;}
+    .rows{margin-top:0;}
+    .rcard{width:130px;}
+    .rcard.live{width:190px;}
+  }
+  #mobileNav{display:none;position:fixed;top:64px;left:0;right:0;background:#0A0A0A;border-bottom:1px solid var(--line);z-index:99;padding:10px 5vw;}
+  #mobileNav.open{display:flex;gap:6px;flex-direction:column;}
+  #mobileNav .navlink{padding:10px 6px;border-bottom:1px solid var(--line);}
+</style>
+</head>
+<body>
+
+<nav id="mainNav">
+  <button id="menuToggle">☰</button>
+  <div class="logo">SINTONIA</div>
+  <div class="navlinks">
+    <div class="navlink active" data-cat="live">TV Ao Vivo <span class="n-count" id="n-live"></span></div>
+    <div class="navlink" data-cat="movie">Filmes <span class="n-count" id="n-movie"></span></div>
+    <div class="navlink" data-cat="series">Séries <span class="n-count" id="n-series"></span></div>
+  </div>
+  <div class="navspacer"></div>
+  <div class="navfields">
+    <input class="field" id="searchBox" placeholder="Buscar...">
+    <input class="field" id="m3uUrl" placeholder="URL da lista .m3u/.m3u8">
+    <button class="btn" id="loadBtn">Carregar</button>
+    <button class="btn ghost" id="pasteToggle">Colar M3U</button>
+    <input class="field" id="omdbKey" placeholder="Chave OMDb (opcional)">
+    <input class="field" id="epgUrl" placeholder="URL EPG (opcional)">
+    <button class="btn ghost" id="loadEpgBtn">Carregar EPG</button>
+  </div>
+</nav>
+
+<div id="mobileNav">
+  <div class="navlink active" data-cat="live">TV Ao Vivo</div>
+  <div class="navlink" data-cat="movie">Filmes</div>
+  <div class="navlink" data-cat="series">Séries</div>
+</div>
+
+<div id="importBar">
+  <p style="font-size:12px;color:var(--muted);margin-bottom:8px;">Cole aqui o conteúdo bruto do arquivo .m3u (use isso se a URL for bloqueada por CORS):</p>
+  <textarea id="pasteText" placeholder="#EXTM3U
+#EXTINF:-1 tvg-name=&quot;Exemplo&quot; group-title=&quot;Filmes&quot;,Nome do item
+http://link-do-stream..."></textarea>
+  <div class="row">
+    <button class="btn" id="pasteLoadBtn">Usar este conteúdo</button>
+    <button class="btn ghost" id="pasteCancel">Fechar</button>
+  </div>
+</div>
+
+<div class="hero" id="hero">
+  <div class="hero-bg" id="heroBg"></div>
+  <div class="hero-content" id="heroContent" style="display:none;">
+    <div class="hero-eyebrow" id="heroEyebrow"></div>
+    <div class="hero-title" id="heroTitle"></div>
+    <div class="hero-desc" id="heroDesc"></div>
+    <div class="hero-actions">
+      <button class="btn-hero play" id="heroPlay">▶ Reproduzir</button>
+      <button class="btn-hero info" id="heroInfo">ⓘ Mais informações</button>
+    </div>
+  </div>
+  <div class="hero-empty" id="heroEmpty">
+    <div class="tuner-icon" id="heroEmptyIcon">📡</div>
+    <div class="hero-title" id="heroEmptyTitle" style="font-size:clamp(30px,6vw,56px);">Sua playlist,<br>do seu jeito.</div>
+    <div class="hero-desc" id="heroEmptyDesc">Cole o link de uma lista M3U ou M3U8 no topo da página para começar a assistir TV ao vivo, filmes e séries.</div>
+  </div>
+</div>
+
+<div class="toolbar" id="toolbar" style="display:none;">
+  <label>Ordenar por</label>
+  <select class="field" id="sortSelect" style="width:170px;">
+    <option value="relevance">Relevância</option>
+    <option value="name">Nome (A-Z)</option>
+    <option value="year">Mais recentes</option>
+    <option value="episodes">Mais episódios</option>
+  </select>
+</div>
+
+<div class="rows" id="rows">
+  <div class="empty-state">
+    <div class="tuner-icon">🛰️</div>
+    <h3>Nenhuma lista carregada</h3>
+    <p>Cole a URL da sua playlist no campo do topo e clique em "Carregar". Se o servidor bloquear o acesso direto do navegador (erro de CORS), baixe o arquivo .m3u, copie o conteúdo e use "Colar M3U".</p>
+  </div>
+</div>
+
+<div class="player-overlay" id="playerOverlay">
+  <div class="player-topbar">
+    <h4 id="playerTitle"></h4>
+    <div class="player-controls">
+      <select class="mini-select" id="subtitleSelect" style="display:none;" title="Legendas"></select>
+      <select class="mini-select" id="qualitySelect" style="display:none;" title="Qualidade"></select>
+      <button class="icon-btn" id="pipBtn" title="Picture-in-Picture">⧉</button>
+      <button class="close-player" id="closePlayer">✕</button>
+    </div>
+  </div>
+  <video id="videoEl" controls autoplay playsinline></video>
+  <div class="next-ep-overlay" id="nextEpOverlay">
+    <div class="next-ep-card">
+      <p>A seguir</p>
+      <h4 id="nextEpTitle"></h4>
+      <div class="next-ep-actions">
+        <button class="btn ghost" id="cancelNextEp">Cancelar</button>
+        <button class="btn" id="playNextEpNow">▶ Reproduzir (<span id="nextEpCountdown">8</span>s)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <button class="modal-close" id="modalClose">✕</button>
+    <div class="modal-hero" id="modalHero"><h3 id="modalTitle"></h3></div>
+    <div class="modal-actions"><button class="btn-hero play" id="modalPlay">▶ Reproduzir</button></div>
+    <div class="modal-body">
+      <div class="modal-badges" id="modalBadges"></div>
+      <div id="modalBody">Carregando...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===================== STATE ===================== */
+let items = [];
+let currentCategory = 'live';
+let liveSelectedGroup = null;
+let hls = null;
+let currentModalSeries = null;
+let sortMode = 'relevance';
+let epgData = {};              // tvgId -> [{start, stop, title}]
+let currentEpisodeContext = null; // {entry, index} quando tocando episódio de série
+let activeItem = null;
+let liveRetryCount = 0;
+let nextEpTimer = null;
+const PAGE_SIZE = 24;
+const MAX_ROWS_INITIAL = 6;
+
+const el = id => document.getElementById(id);
+const rowsEl = el('rows');
+
+/* ===================== NAV ===================== */
+window.addEventListener('scroll', ()=> el('mainNav').classList.toggle('scrolled', window.scrollY > 40));
+el('menuToggle').addEventListener('click', ()=> el('mobileNav').classList.toggle('open'));
+
+function setCategory(cat){
+  currentCategory = cat;
+  liveSelectedGroup = null;
+  document.querySelectorAll('.navlink').forEach(n=> n.classList.toggle('active', n.dataset.cat===cat));
+  el('mobileNav').classList.remove('open');
+  renderView();
+}
+document.querySelectorAll('.navlink').forEach(n=> n.addEventListener('click', ()=> setCategory(n.dataset.cat)));
+
+el('pasteToggle').addEventListener('click', ()=> el('importBar').classList.toggle('open'));
+el('pasteCancel').addEventListener('click', ()=> el('importBar').classList.remove('open'));
+
+el('sortSelect').addEventListener('change', ()=>{ sortMode = el('sortSelect').value; renderView(); });
+
+/* ===================== PARSING & CATEGORIZAÇÃO ===================== */
+const MOVIE_WORDS  = /(filme|filmes|movie|movies|cine|cinema|lan[çc]amento|vod)\b/i;
+const SERIES_WORDS = /(s[ée]rie|series|temporada|season|anime|doramas?)\b/i;
+const LIVE_WORDS   = /(canais?|canal|tv\b|aberta|abertos|esporte|esportes|not[íi]cias|24h|ao vivo|live)/i;
+const EPISODE_PATTERN = /\bS\s*\d{1,2}\s*[.\-]?\s*E\s*\d{1,3}\b/i;
+const EPISODE_PATTERN_X = /\b\d{1,2}x\d{1,3}\b/i;
+
+function classify(groupTitle, name){
+  const group = (groupTitle||'').toLowerCase();
+  const full  = group + ' ' + (name||'').toLowerCase();
+  if(/^\s*canais?\b/i.test(groupTitle||'')) return 'live';
+  if(EPISODE_PATTERN.test(name||'') || EPISODE_PATTERN_X.test(name||'')) return 'series';
+  if(SERIES_WORDS.test(group)) return 'series';
+  if(MOVIE_WORDS.test(group)) return 'movie';
+  if(LIVE_WORDS.test(group)) return 'live';
+  if(SERIES_WORDS.test(full)) return 'series';
+  if(MOVIE_WORDS.test(full)) return 'movie';
+  return 'live';
+}
+function extractYear(name){
+  const m = (name||'').match(/\b(19\d{2}|20\d{2})\b/);
+  return m ? m[1] : '';
+}
+function extractQuality(name){
+  const s = name||'';
+  if(/\b(4K|UHD|2160p?)\b/i.test(s)) return '4K';
+  if(/\b(FHD|1080p?)\b/i.test(s)) return 'FHD';
+  if(/\b(HD|720p?)\b/i.test(s)) return 'HD';
+  if(/\bSD\b/i.test(s)) return 'SD';
+  return '';
+}
+function formatDuration(sec){
+  const h = Math.floor(sec/3600), m = Math.round((sec%3600)/60);
+  return h>0 ? `${h}h ${m}min` : `${m}min`;
+}
+function cleanTitle(name){
+  return (name||'')
+    .replace(/\[.*?\]/g,'')
+    .replace(/\(.*?\)/g,'')
+    .replace(/\b(4K|UHD|FHD|HD|SD|LEGENDADO|DUBLADO|H265|2160p|1080p|720p)\b/gi,'')
+    .replace(/S\s*\d{1,2}\s*E\s*\d{1,3}.*$/i,'')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+
+function detectEpgUrl(text){
+  const headerLine = (text.split(/\r?\n/)[0]||'');
+  const m = headerLine.match(/url-tvg="([^"]*)"/i) || headerLine.match(/x-tvg-url="([^"]*)"/i);
+  return m ? m[1].split(',')[0].trim() : '';
+}
+
+function parseM3U(text){
+  const lines = text.split(/\r?\n/);
+  const out = [];
+  let pending = null;
+  for(let raw of lines){
+    const line = raw.trim();
+    if(!line) continue;
+    if(line.startsWith('#EXTINF')){
+      const durMatch = line.match(/^#EXTINF:(-?\d+)/);
+      const nameMatch = line.match(/,(.*)$/);
+      const groupMatch = line.match(/group-title="([^"]*)"/i);
+      const logoMatch = line.match(/tvg-logo="([^"]*)"/i);
+      const idMatch = line.match(/tvg-id="([^"]*)"/i);
+      const name = nameMatch ? nameMatch[1].trim() : 'Sem nome';
+      const durationSec = durMatch ? parseInt(durMatch[1],10) : -1;
+      pending = {
+        name,
+        group: groupMatch ? groupMatch[1].trim() : 'Geral',
+        logo: logoMatch ? logoMatch[1].trim() : '',
+        tvgId: idMatch ? idMatch[1].trim() : '',
+        duration: durationSec > 0 ? durationSec : null,
+        year: extractYear(name),
+        quality: extractQuality(name)
+      };
+    } else if(line.startsWith('#')){
+      continue;
+    } else if(pending){
+      pending.url = line;
+      pending.category = classify(pending.group, pending.name);
+      out.push(pending);
+      pending = null;
+    }
+  }
+  return out;
+}
+
+async function loadFromUrl(url){
+  setLoadingState(true);
+  try{
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const text = await res.text();
+    ingest(text);
+  }catch(err){
+    alert('Não foi possível carregar a lista diretamente (provável bloqueio de CORS do servidor).\nBaixe o arquivo .m3u, copie o conteúdo, e use "Colar M3U".\n\nDetalhe técnico: '+err.message);
+  }finally{
+    setLoadingState(false);
+  }
+}
+function ingest(text){
+  const parsed = parseM3U(text);
+  if(!parsed.length){ alert('Nenhum item #EXTINF encontrado. Verifique se o conteúdo é uma playlist M3U válida.'); return; }
+  items = parsed;
+  liveSelectedGroup = null;
+  el('importBar').classList.remove('open');
+  el('toolbar').style.display = 'flex';
+  updateNavCounts();
+
+  const detected = detectEpgUrl(text);
+  if(detected){
+    el('epgUrl').value = detected;
+    loadEPG(detected);
+  }
+  renderView();
+}
+function setLoadingState(loading){
+  el('loadBtn').textContent = loading ? '...' : 'Carregar';
+  el('loadBtn').disabled = loading;
+}
+el('loadBtn').addEventListener('click', ()=>{
+  const url = el('m3uUrl').value.trim();
+  if(!url) return alert('Cole a URL da lista primeiro.');
+  loadFromUrl(url);
+});
+el('pasteLoadBtn').addEventListener('click', ()=>{
+  const text = el('pasteText').value;
+  if(!text.trim()) return alert('Cole o conteúdo do arquivo M3U primeiro.');
+  ingest(text);
+});
+el('loadEpgBtn').addEventListener('click', ()=>{
+  const url = el('epgUrl').value.trim();
+  if(!url) return alert('Informe a URL do EPG (XMLTV) primeiro.');
+  loadEPG(url);
+});
+let searchTimer = null;
+el('searchBox').addEventListener('input', ()=>{
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(renderView, 300);
+});
+
+function updateNavCounts(){
+  const c = {live:0, movie:0, series:0};
+  items.forEach(i=> c[i.category]++);
+  el('n-live').textContent = c.live ? c.live.toLocaleString('pt-BR') : '';
+  el('n-movie').textContent = c.movie ? c.movie.toLocaleString('pt-BR') : '';
+  el('n-series').textContent = c.series ? c.series.toLocaleString('pt-BR') : '';
+}
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ===================== EPG (XMLTV) ===================== */
+function parseXMLTVDate(s){
+  const m = (s||'').match(/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})\s*([+-]\d{2})?(\d{2})?/);
+  if(!m) return null;
+  const [, Y,Mo,D,H,Mi,S,offH,offM] = m;
+  let date = new Date(Date.UTC(+Y, +Mo-1, +D, +H, +Mi, +S));
+  if(offH){
+    const sign = offH[0]==='-' ? -1 : 1;
+    const offsetMinutes = sign * (parseInt(offH.replace('-','').replace('+',''),10)*60 + parseInt(offM||'0',10));
+    date = new Date(date.getTime() - offsetMinutes*60000);
+  }
+  return date;
+}
+async function loadEPG(url){
+  try{
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const text = await res.text();
+    const xml = new DOMParser().parseFromString(text, 'application/xml');
+    if(xml.querySelector('parsererror')) throw new Error('XML inválido');
+    const programmes = xml.getElementsByTagName('programme');
+    const map = {};
+    for(const p of programmes){
+      const channel = p.getAttribute('channel');
+      if(!channel) continue;
+      const start = parseXMLTVDate(p.getAttribute('start')||'');
+      const stop = parseXMLTVDate(p.getAttribute('stop')||'');
+      const titleEl = p.getElementsByTagName('title')[0];
+      const title = titleEl ? titleEl.textContent : '';
+      if(!start || !stop) continue;
+      (map[channel] ||= []).push({start, stop, title});
+    }
+    Object.values(map).forEach(arr=> arr.sort((a,b)=> a.start-b.start));
+    epgData = map;
+    renderView();
+  }catch(err){
+    console.warn('EPG indisponível (CORS ou formato inválido):', err.message);
+  }
+}
+function getNowNext(tvgId){
+  if(!tvgId || !epgData[tvgId]) return null;
+  const now = new Date();
+  const list = epgData[tvgId];
+  let current=null, next=null;
+  for(let i=0;i<list.length;i++){
+    if(list[i].start<=now && now<list[i].stop){ current=list[i]; next=list[i+1]||null; break; }
+    if(list[i].start>now){ next=list[i]; break; }
+  }
+  return (current||next) ? {current, next} : null;
+}
+
+/* ===================== ORDENAÇÃO ===================== */
+function applySort(list){
+  if(sortMode==='relevance') return list;
+  const arr = [...list];
+  if(sortMode==='name') arr.sort((a,b)=> a.name.localeCompare(b.name,'pt-BR'));
+  else if(sortMode==='year') arr.sort((a,b)=> (parseInt(b.year)||0) - (parseInt(a.year)||0));
+  else if(sortMode==='episodes') arr.sort((a,b)=> (b.episodes?b.episodes.length:0) - (a.episodes?a.episodes.length:0));
+  return arr;
+}
+
+/* ===================== HERO HELPERS ===================== */
+function showEmptyHero(icon, titleHtml, descText){
+  el('heroContent').style.display='none';
+  el('heroEmpty').style.display='block';
+  el('heroBg').classList.remove('show');
+  el('heroEmptyIcon').textContent = icon;
+  el('heroEmptyTitle').innerHTML = titleHtml;
+  el('heroEmptyDesc').textContent = descText;
+}
+function showFeaturedHero(item, eyebrow, extraDesc){
+  el('heroEmpty').style.display='none';
+  el('heroContent').style.display='block';
+  el('heroEyebrow').textContent = eyebrow;
+  el('heroTitle').textContent = item.name;
+  const bits = [item.group];
+  if(item.year) bits.push(item.year);
+  if(item.quality) bits.push(item.quality);
+  if(item.episodes) bits.push(item.episodes.length+' episódios');
+  else if(item.duration) bits.push(formatDuration(item.duration));
+  if(extraDesc) bits.push(extraDesc);
+  el('heroDesc').textContent = bits.filter(Boolean).join(' · ');
+  if(item.logo){ el('heroBg').style.backgroundImage=`url('${item.logo}')`; el('heroBg').classList.add('show'); }
+  else el('heroBg').classList.remove('show');
+}
+function emptyStateNoList(){
+  return `<div class="empty-state"><div class="tuner-icon">🛰️</div><h3>Nenhuma lista carregada</h3><p>Cole a URL da sua playlist no campo do topo e clique em "Carregar". Se o servidor bloquear o acesso direto do navegador (erro de CORS), baixe o arquivo .m3u, copie o conteúdo e use "Colar M3U".</p></div>`;
+}
+function emptyStateHtml(icon,title,desc){
+  return `<div class="empty-state"><div class="tuner-icon">${icon}</div><h3>${title}</h3><p>${desc}</p></div>`;
+}
+
+/* ===================== VIEW DISPATCH ===================== */
+function renderView(){
+  if(!items.length) el('toolbar').style.display = 'none';
+  if(currentCategory === 'live'){
+    if(!items.length){
+      showEmptyHero('🛰️','Sua playlist,<br>do seu jeito.','Cole o link de uma lista M3U ou M3U8 no topo da página para começar a assistir TV ao vivo, filmes e séries.');
+      rowsEl.innerHTML = emptyStateNoList();
+      return;
+    }
+    if(liveSelectedGroup === null) renderLiveCategoriesView();
+    else renderLiveChannelsView(liveSelectedGroup);
+  } else if(currentCategory === 'movie'){
+    renderMovieView();
+  } else {
+    renderSeriesView();
+  }
+}
+
+/* ===================== TV AO VIVO: CATEGORIAS ===================== */
+function renderLiveCategoriesView(){
+  const list = items.filter(i=>i.category==='live');
+  showEmptyHero('📡','Escolha uma categoria','Selecione um grupo de canais abaixo — Globo, Esportes, Notícias, etc — para ver a programação ao vivo.');
+  if(!list.length){
+    rowsEl.innerHTML = emptyStateHtml('📡','Nenhum canal ao vivo encontrado','Sua lista pode não conter canais classificados como TV ao vivo.');
+    return;
+  }
+  const groups = {};
+  list.forEach(i=>{ (groups[i.group] ||= []).push(i); });
+  const names = Object.keys(groups).sort();
+
+  const grid = document.createElement('div');
+  grid.className = 'cat-grid';
+  names.forEach(name=>{
+    const chs = groups[name];
+    const logo = (chs.find(c=>c.logo) || {}).logo || '';
+    const card = document.createElement('div');
+    card.className = 'cat-card';
+    card.innerHTML = `${logo ? `<img class="cat-logo" src="${logo}" loading="lazy" onerror="this.remove()">` : ''}<h4>${escapeHtml(name)}</h4><div class="cat-count">${chs.length} canais</div>`;
+    card.onclick = () => { liveSelectedGroup = name; renderView(); window.scrollTo({top:0, behavior:'smooth'}); };
+    grid.appendChild(card);
+  });
+  rowsEl.innerHTML = '';
+  rowsEl.appendChild(grid);
+}
+
+function renderLiveChannelsView(groupName){
+  let list = items.filter(i=>i.category==='live' && i.group===groupName);
+  if(!list.length){ liveSelectedGroup = null; renderLiveCategoriesView(); return; }
+  list = applySort(list);
+
+  const featured = list[Math.floor(Math.random()*list.length)];
+  const nn = getNowNext(featured.tvgId);
+  showFeaturedHero(featured, 'AO VIVO · '+groupName.toUpperCase(), nn && nn.current ? 'Agora: '+nn.current.title : '');
+  el('heroPlay').onclick = () => playItem(featured);
+  el('heroInfo').onclick = () => showModal(featured);
+
+  rowsEl.innerHTML = '';
+  const backBar = document.createElement('div');
+  backBar.className = 'back-bar';
+  backBar.innerHTML = `<button class="back-btn" id="backToCats">← Categorias</button><h2>${escapeHtml(groupName)}</h2>`;
+  rowsEl.appendChild(backBar);
+  el('backToCats').onclick = () => { liveSelectedGroup = null; renderView(); };
+
+  const grid = document.createElement('div');
+  grid.className = 'cat-grid';
+  grid.dataset.rendered = '0';
+  mountRowData(grid, list);
+  rowsEl.appendChild(grid);
+}
+
+/* ===================== FILMES ===================== */
+function renderMovieView(){
+  const term = el('searchBox').value.trim().toLowerCase();
+  let list = items.filter(i=>i.category==='movie');
+  if(term) list = list.filter(i=>i.name.toLowerCase().includes(term));
+
+  if(!items.length){
+    showEmptyHero('🛰️','Sua playlist,<br>do seu jeito.','Cole o link de uma lista M3U ou M3U8 no topo da página para começar a assistir TV ao vivo, filmes e séries.');
+    rowsEl.innerHTML = emptyStateNoList();
+    return;
+  }
+  if(!list.length){
+    showEmptyHero('🎬','Nenhum filme encontrado','Ajuste sua busca ou verifique se a lista possui grupos de filmes.');
+    rowsEl.innerHTML = emptyStateHtml('🎬','Nenhum filme encontrado','Ajuste sua busca ou troque de categoria.');
+    return;
+  }
+  list = applySort(list);
+
+  const launchPool = list.filter(i=>/lan[çc]amento/i.test(i.group));
+  const pool = launchPool.length ? launchPool : list;
+  const featured = pool[Math.floor(Math.random()*Math.min(pool.length,20))];
+  showFeaturedHero(featured, launchPool.length ? 'LANÇAMENTO' : 'EM DESTAQUE · FILME');
+  el('heroPlay').onclick = () => playItem(featured);
+  el('heroInfo').onclick = () => showModal(featured);
+
+  renderGroupedRows(list);
+}
+
+/* ===================== SÉRIES ===================== */
+function parseEpisode(name){
+  let m = (name||'').match(/^(.*?)[\s\-_.]*S\s*(\d{1,2})\s*[.\-]?\s*E\s*(\d{1,3})\b.*$/i);
+  if(m) return {title:m[1].trim(), season:parseInt(m[2],10), episode:parseInt(m[3],10)};
+  m = (name||'').match(/^(.*?)[\s\-_.]*(\d{1,2})x(\d{1,3})\b.*$/i);
+  if(m) return {title:m[1].trim(), season:parseInt(m[2],10), episode:parseInt(m[3],10)};
+  return null;
+}
+function groupSeriesFlat(list){
+  const map = new Map();
+  list.forEach(item=>{
+    const parsed = parseEpisode(item.name);
+    let title = parsed ? parsed.title : cleanTitle(item.name);
+    title = title.replace(/[-_.\s]+$/,'').trim() || item.name;
+    const key = (item.group+'|'+title).toLowerCase();
+    if(!map.has(key)){
+      map.set(key, {name:title, logo:item.logo, group:item.group, category:'series', year:item.year||'', episodes:[]});
+    }
+    const entry = map.get(key);
+    if(!entry.logo && item.logo) entry.logo = item.logo;
+    entry.episodes.push({season: parsed?parsed.season:1, episode: parsed?parsed.episode:(entry.episodes.length+1), item});
+  });
+  const arr = Array.from(map.values());
+  arr.forEach(s=> s.episodes.sort((a,b)=> a.season-b.season || a.episode-b.episode));
+  return arr;
+}
+function firstEpisode(seriesEntry){ return seriesEntry.episodes[0]; }
+
+function renderSeriesView(){
+  const term = el('searchBox').value.trim().toLowerCase();
+  let list = items.filter(i=>i.category==='series');
+  if(term) list = list.filter(i=>i.name.toLowerCase().includes(term));
+
+  if(!items.length){
+    showEmptyHero('🛰️','Sua playlist,<br>do seu jeito.','Cole o link de uma lista M3U ou M3U8 no topo da página para começar a assistir TV ao vivo, filmes e séries.');
+    rowsEl.innerHTML = emptyStateNoList();
+    return;
+  }
+  if(!list.length){
+    showEmptyHero('📺','Nenhuma série encontrada','Ajuste sua busca ou verifique se a lista possui grupos de séries.');
+    rowsEl.innerHTML = emptyStateHtml('📺','Nenhuma série encontrada','Ajuste sua busca ou troque de categoria.');
+    return;
+  }
+
+  let seriesEntries = groupSeriesFlat(list);
+  seriesEntries = applySort(seriesEntries);
+  const featured = seriesEntries[Math.floor(Math.random()*Math.min(seriesEntries.length,20))];
+  showFeaturedHero(featured, 'EM DESTAQUE · SÉRIE');
+  el('heroPlay').onclick = () => { const f=firstEpisode(featured); if(f) playItem(f.item, {entry:featured, index:0}); };
+  el('heroInfo').onclick = () => showModal(featured);
+
+  renderGroupedRows(seriesEntries);
+}
+
+/* ===================== CARROSSÉIS (genérico p/ filmes e séries) ===================== */
+let rowObserver = null;
+
+function renderGroupedRows(list){
+  if(rowObserver){ rowObserver.disconnect(); rowObserver = null; }
+  if(!list.length){
+    rowsEl.innerHTML = emptyStateHtml('🔍','Nada encontrado','Tente outro termo de busca ou troque de categoria.');
+    return;
+  }
+  const groups = {};
+  list.forEach(i=>{ (groups[i.group] ||= []).push(i); });
+  let groupNames = Object.keys(groups).sort();
+  groupNames.sort((a,b)=>{
+    const aL = /lan[çc]amento/i.test(a) ? 0 : 1;
+    const bL = /lan[çc]amento/i.test(b) ? 0 : 1;
+    return aL !== bL ? aL-bL : a.localeCompare(b);
+  });
+
+  rowsEl.innerHTML = '';
+  const frag = document.createDocumentFragment();
+  rowObserver = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){ mountRow(entry.target); rowObserver.unobserve(entry.target); }
+    });
+  }, { root:null, rootMargin:'400px 0px', threshold:0.01 });
+
+  groupNames.forEach((groupName, idx)=>{
+    const block = document.createElement('div');
+    block.className = 'row-block';
+    block.innerHTML = `
+      <div class="row-head"><h3>${escapeHtml(groupName)}</h3><span class="row-count">${groups[groupName].length} itens</span></div>
+      <button class="row-arrow left" aria-label="anterior">‹</button>
+      <button class="row-arrow right" aria-label="próximo">›</button>
+    `;
+    const scroll = document.createElement('div');
+    scroll.className = 'row-scroll';
+    scroll.dataset.group = groupName;
+    scroll.dataset.rendered = '0';
+
+    if(idx < MAX_ROWS_INITIAL){
+      mountRowData(scroll, groups[groupName]);
+    }else{
+      scroll.innerHTML = `<div class="row-skel">carregando...</div>`;
+      scroll._pendingItems = groups[groupName];
+    }
+    block.appendChild(scroll);
+    frag.appendChild(block);
+
+    block.querySelector('.row-arrow.left').onclick = () => scroll.scrollBy({left:-scroll.clientWidth*0.85, behavior:'smooth'});
+    block.querySelector('.row-arrow.right').onclick = () => scroll.scrollBy({left:scroll.clientWidth*0.85, behavior:'smooth'});
+
+    if(idx >= MAX_ROWS_INITIAL) rowObserver.observe(scroll);
+  });
+
+  rowsEl.appendChild(frag);
+}
+
+function mountRow(scrollEl){
+  const list = scrollEl._pendingItems;
+  if(!list) return;
+  scrollEl.innerHTML = '';
+  mountRowData(scrollEl, list);
+}
+function mountRowData(scrollEl, list){
+  const already = parseInt(scrollEl.dataset.rendered || '0', 10);
+  const nextBatch = list.slice(already, already + PAGE_SIZE);
+  const frag = document.createDocumentFragment();
+  nextBatch.forEach(item=> frag.appendChild(buildCard(item)));
+
+  const oldMore = scrollEl.querySelector('.load-more-card');
+  if(oldMore) oldMore.remove();
+
+  scrollEl.appendChild(frag);
+  const renderedNow = already + nextBatch.length;
+  scrollEl.dataset.rendered = String(renderedNow);
+
+  if(renderedNow < list.length){
+    const more = document.createElement('div');
+    more.className = 'load-more-card';
+    more.innerHTML = `<span class="plus">+</span><span>ver mais<br>(${list.length - renderedNow})</span>`;
+    more.onclick = () => mountRowData(scrollEl, list);
+    scrollEl.appendChild(more);
+  }
+}
+
+function buildCard(item){
+  const card = document.createElement('div');
+  card.className = 'rcard' + (item.category==='live' ? ' live' : '');
+  const badge = item.category==='live' ? '<span class="live-badge">● AO VIVO</span>' : '';
+  const qualityBadge = item.quality ? `<span class="quality-badge">${item.quality}</span>` : '';
+  const placeholderIcon = item.category==='live' ? '📡' : (item.episodes ? '📺' : '🎞️');
+  const img = item.logo
+    ? `<img class="thumb" loading="lazy" decoding="async" src="${item.logo}" alt="">`
+    : `<div class="thumb">${placeholderIcon}</div>`;
+
+  let sub = item.episodes ? `${item.episodes.length} epis.` : (item.year || '');
+  if(item.category==='live'){
+    const nn = getNowNext(item.tvgId);
+    if(nn && nn.current) sub = 'Agora: '+nn.current.title;
+  }
+
+  card.innerHTML = `${badge}${qualityBadge}${img}<div class="rcard-info"><div class="rcard-title">${escapeHtml(item.name)}</div>${sub?`<div class="rcard-sub">${escapeHtml(sub)}</div>`:''}</div>`;
+  const imgTag = card.querySelector('img.thumb');
+  if(imgTag){
+    imgTag.addEventListener('error', ()=>{
+      const div = document.createElement('div');
+      div.className = 'thumb';
+      div.textContent = placeholderIcon;
+      imgTag.replaceWith(div);
+    });
+  }
+  card.onclick = () => item.category==='live' ? playItem(item) : showModal(item);
+  return card;
+}
+
+/* --------- arraste com mouse + roda do mouse horizontal + setas nos carrosséis --------- */
+let dragState = null;
+let suppressClick = false;
+rowsEl.addEventListener('pointerdown', (e)=>{
+  const rs = e.target.closest('.row-scroll, .cat-grid');
+  if(!rs) return;
+  dragState = { el: rs, startX: e.clientX, startScroll: rs.scrollLeft, moved:false };
+});
+window.addEventListener('pointermove', (e)=>{
+  if(!dragState) return;
+  const dx = e.clientX - dragState.startX;
+  if(Math.abs(dx) > 5) dragState.moved = true;
+  if(dragState.el.scrollWidth > dragState.el.clientWidth) dragState.el.scrollLeft = dragState.startScroll - dx;
+});
+window.addEventListener('pointerup', ()=>{
+  if(dragState && dragState.moved) suppressClick = true;
+  dragState = null;
+});
+rowsEl.addEventListener('click', (e)=>{
+  if(suppressClick){ e.stopPropagation(); e.preventDefault(); suppressClick = false; }
+}, true);
+rowsEl.addEventListener('wheel', (e)=>{
+  const rs = e.target.closest('.row-scroll');
+  if(!rs) return;
+  if(Math.abs(e.deltaY) > Math.abs(e.deltaX)){
+    const canRight = rs.scrollLeft < rs.scrollWidth - rs.clientWidth - 1;
+    const canLeft = rs.scrollLeft > 0;
+    if((e.deltaY>0 && canRight) || (e.deltaY<0 && canLeft)){
+      e.preventDefault();
+      rs.scrollLeft += e.deltaY;
+    }
+  }
+}, {passive:false});
+
+/* ===================== PLAYER ===================== */
+function resetPlayerControls(){
+  el('subtitleSelect').style.display='none'; el('subtitleSelect').innerHTML='';
+  el('qualitySelect').style.display='none'; el('qualitySelect').innerHTML='';
+  el('nextEpOverlay').style.display='none';
+  if(nextEpTimer){ clearInterval(nextEpTimer); nextEpTimer=null; }
+}
+
+function playItem(item, seriesContext){
+  currentEpisodeContext = seriesContext || null;
+  activeItem = item;
+  liveRetryCount = 0;
+  resetPlayerControls();
+
+  el('playerOverlay').classList.add('open');
+  el('playerTitle').innerHTML = escapeHtml(item.name) + (item.category==='live' ? ' <span class="live-badge">AO VIVO</span>' : '');
+  const video = el('videoEl');
+  if(hls){ hls.destroy(); hls=null; }
+
+  if(item.url.includes('.m3u8') && window.Hls && Hls.isSupported()){
+    hls = new Hls();
+    hls.loadSource(item.url);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, ()=>{
+      populateQualitySelect(hls.levels);
+      populateSubtitleSelect(hls.subtitleTracks);
+    });
+    hls.on(Hls.Events.ERROR, (event, data)=>{
+      if(data.fatal) handleFatalError(data, item);
+    });
+  }else{
+    video.src = item.url;
+    video.addEventListener('loadedmetadata', ()=> populateNativeSubtitles(video), {once:true});
+  }
+  video.play().catch(()=>{});
+}
+
+function populateQualitySelect(levels){
+  const sel = el('qualitySelect');
+  if(!levels || levels.length<2){ sel.style.display='none'; return; }
+  sel.innerHTML = '<option value="-1">Auto</option>' + levels.map((l,i)=>`<option value="${i}">${l.height}p</option>`).join('');
+  sel.style.display='inline-block';
+  sel.onchange = ()=>{ if(hls) hls.currentLevel = parseInt(sel.value,10); };
+}
+function populateSubtitleSelect(tracks){
+  const sel = el('subtitleSelect');
+  if(!tracks || !tracks.length){ sel.style.display='none'; return; }
+  sel.innerHTML = '<option value="-1">Legenda: Desligada</option>' + tracks.map((t,i)=>`<option value="${i}">${escapeHtml(t.name||t.lang||('Faixa '+(i+1)))}</option>`).join('');
+  sel.style.display='inline-block';
+  sel.onchange = ()=>{ if(hls) hls.subtitleTrack = parseInt(sel.value,10); };
+}
+function populateNativeSubtitles(video){
+  const sel = el('subtitleSelect');
+  const tracks = video.textTracks;
+  if(!tracks || !tracks.length){ sel.style.display='none'; return; }
+  let opts = '<option value="-1">Legenda: Desligada</option>';
+  for(let i=0;i<tracks.length;i++){
+    opts += `<option value="${i}">${escapeHtml(tracks[i].label||tracks[i].language||('Faixa '+(i+1)))}</option>`;
+    tracks[i].mode = 'disabled';
+  }
+  sel.innerHTML = opts;
+  sel.style.display='inline-block';
+  sel.onchange = ()=>{
+    for(let i=0;i<tracks.length;i++) tracks[i].mode = (i===parseInt(sel.value,10)) ? 'showing' : 'disabled';
+  };
+}
+
+function handleFatalError(data, item){
+  if(liveRetryCount >= 5){
+    el('playerTitle').innerHTML = escapeHtml(item.name) + ' <span style="color:var(--red);font-size:11px;">(sinal perdido — tente novamente mais tarde)</span>';
+    return;
+  }
+  liveRetryCount++;
+  setTimeout(()=>{
+    if(!hls) return;
+    if(data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
+    else if(data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
+    else playItem(item, currentEpisodeContext);
+  }, 1200 * liveRetryCount);
+}
+
+el('pipBtn').addEventListener('click', async ()=>{
+  try{
+    if(document.pictureInPictureElement) await document.exitPictureInPicture();
+    else if(document.pictureInPictureEnabled) await el('videoEl').requestPictureInPicture();
+  }catch(err){ /* navegador pode não suportar PiP para este stream */ }
+});
+
+el('videoEl').addEventListener('error', ()=>{
+  if(hls || !activeItem) return; // erro tratado pelo hls.js nesse caso
+  if(liveRetryCount < 5){
+    liveRetryCount++;
+    setTimeout(()=>{
+      const video = el('videoEl');
+      video.src = activeItem.url;
+      video.play().catch(()=>{});
+    }, 1200 * liveRetryCount);
+  }
+});
+
+el('videoEl').addEventListener('ended', ()=>{
+  if(!currentEpisodeContext) return;
+  const {entry, index} = currentEpisodeContext;
+  const next = entry.episodes[index+1];
+  if(!next) return;
+  showNextEpisodePrompt(entry, index+1, next);
+});
+
+function showNextEpisodePrompt(entry, nextIndex, nextEp){
+  el('nextEpOverlay').style.display='flex';
+  el('nextEpTitle').textContent = `${entry.name} — T${nextEp.season} EP${nextEp.episode}`;
+  let countdown = 8;
+  el('nextEpCountdown').textContent = countdown;
+  if(nextEpTimer) clearInterval(nextEpTimer);
+  nextEpTimer = setInterval(()=>{
+    countdown--;
+    el('nextEpCountdown').textContent = Math.max(countdown,0);
+    if(countdown<=0){ clearInterval(nextEpTimer); nextEpTimer=null; confirmNext(); }
+  },1000);
+  function confirmNext(){
+    el('nextEpOverlay').style.display='none';
+    playItem(nextEp.item, {entry, index:nextIndex});
+  }
+  el('playNextEpNow').onclick = ()=>{ if(nextEpTimer){clearInterval(nextEpTimer);nextEpTimer=null;} confirmNext(); };
+  el('cancelNextEp').onclick = ()=>{ if(nextEpTimer){clearInterval(nextEpTimer);nextEpTimer=null;} el('nextEpOverlay').style.display='none'; };
+}
+
+el('closePlayer').addEventListener('click', ()=>{
+  el('playerOverlay').classList.remove('open');
+  const video = el('videoEl');
+  video.pause();
+  video.removeAttribute('src');
+  video.load();
+  if(hls){ hls.destroy(); hls=null; }
+  activeItem = null;
+  currentEpisodeContext = null;
+  resetPlayerControls();
+});
+
+/* ===================== MODAL (dados locais do M3U + OMDb opcional) ===================== */
+const modalBg = el('modalBg');
+el('modalClose').addEventListener('click', ()=> modalBg.classList.remove('open'));
+modalBg.addEventListener('click', e=>{ if(e.target===modalBg) modalBg.classList.remove('open'); });
+el('modalBody').addEventListener('click', (e)=>{
+  const btn = e.target.closest('.ep-btn');
+  if(!btn || !currentModalSeries) return;
+  const season = parseInt(btn.dataset.season,10), ep = parseInt(btn.dataset.ep,10);
+  const idx = currentModalSeries.episodes.findIndex(x=>x.season===season && x.episode===ep);
+  if(idx>=0){ modalBg.classList.remove('open'); playItem(currentModalSeries.episodes[idx].item, {entry:currentModalSeries, index:idx}); }
+});
+
+function buildSeasonPicker(seriesEntry){
+  const bySeason = {};
+  seriesEntry.episodes.forEach(e=>{ (bySeason[e.season] ||= []).push(e); });
+  const seasons = Object.keys(bySeason).map(Number).sort((a,b)=>a-b);
+  return seasons.map(s=>{
+    const eps = bySeason[s].sort((a,b)=>a.episode-b.episode);
+    const btns = eps.map(e=>`<button class="ep-btn" data-season="${s}" data-ep="${e.episode}">EP ${e.episode}</button>`).join('');
+    return `<div class="season-block"><h4>Temporada ${s}</h4><div class="episode-grid">${btns}</div></div>`;
+  }).join('');
+}
+
+async function showModal(item){
+  currentModalSeries = item.episodes ? item : null;
+  el('modalTitle').textContent = item.name;
+  el('modalHero').style.backgroundImage = item.logo ? `url('${item.logo}')` : 'none';
+  el('modalHero').style.backgroundColor = '#222';
+
+  const localBadges = [];
+  if(item.group) localBadges.push(`<span class="badge">${escapeHtml(item.group)}</span>`);
+  if(item.year) localBadges.push(`<span class="badge">${escapeHtml(item.year)}</span>`);
+  if(item.quality) localBadges.push(`<span class="badge">${escapeHtml(item.quality)}</span>`);
+  if(item.duration) localBadges.push(`<span class="badge">${formatDuration(item.duration)}</span>`);
+  if(item.episodes) localBadges.push(`<span class="badge">${item.episodes.length} episódios</span>`);
+
+  let epgHtml = '';
+  if(item.category==='live'){
+    const nn = getNowNext(item.tvgId);
+    if(nn){
+      if(nn.current) localBadges.push(`<span class="badge epg">Agora: ${escapeHtml(nn.current.title)}</span>`);
+      if(nn.next) epgHtml = `<p><strong>A seguir:</strong> ${escapeHtml(nn.next.title)}</p>`;
+    }
+  }
+  el('modalBadges').innerHTML = localBadges.join('');
+
+  if(item.episodes){
+    el('modalPlay').textContent = '▶ Reproduzir 1º episódio';
+    el('modalPlay').onclick = () => { modalBg.classList.remove('open'); playItem(firstEpisode(item).item, {entry:item, index:0}); };
+    el('modalBody').innerHTML = buildSeasonPicker(item);
+  }else{
+    el('modalPlay').textContent = '▶ Reproduzir';
+    el('modalPlay').onclick = () => { modalBg.classList.remove('open'); playItem(item); };
+    el('modalBody').innerHTML = epgHtml || ((item.year || item.duration)
+      ? `<p>Informações extraídas diretamente da sua lista M3U.</p>`
+      : `<p>Nenhuma informação adicional disponível na sua lista para este item. Adicione uma chave OMDb (opcional, no topo da página) para tentar buscar sinopse e nota do IMDb.</p>`);
+  }
+  modalBg.classList.add('open');
+
+  const key = el('omdbKey').value.trim();
+  if(!key) return;
+
+  try{
+    const title = cleanTitle(item.name);
+    const url = `https://www.omdbapi.com/?apikey=${encodeURIComponent(key)}&t=${encodeURIComponent(title)}&type=${item.category==='series'?'series':'movie'}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if(data.Response === 'False') return;
+
+    if(data.Poster && data.Poster !== 'N/A') el('modalHero').style.backgroundImage = `url('${data.Poster}')`;
+    const extra = [];
+    if(data.Year && data.Year!=='N/A') extra.push(`<span class="badge">${escapeHtml(data.Year)}</span>`);
+    if(data.Genre && data.Genre!=='N/A') extra.push(`<span class="badge">${escapeHtml(data.Genre)}</span>`);
+    if(data.imdbRating && data.imdbRating!=='N/A') extra.push(`<span class="badge rating">★ ${escapeHtml(data.imdbRating)} IMDb</span>`);
+    el('modalBadges').innerHTML = localBadges.concat(extra).join('');
+
+    const plotHtml = data.Plot && data.Plot!=='N/A' ? `<p>${escapeHtml(data.Plot)}</p>` : '';
+    const castHtml = data.Actors && data.Actors!=='N/A' ? `<p style="margin-top:12px;"><strong>Elenco:</strong> ${escapeHtml(data.Actors)}</p>` : '';
+    const dirHtml  = data.Director && data.Director!=='N/A' ? `<p><strong>Direção:</strong> ${escapeHtml(data.Director)}</p>` : '';
+
+    if(item.episodes){
+      el('modalBody').innerHTML = plotHtml + castHtml + dirHtml + buildSeasonPicker(item);
+    }else if(plotHtml || castHtml || dirHtml){
+      el('modalBody').innerHTML = plotHtml + castHtml + dirHtml;
+    }
+  }catch(err){ /* falha silenciosa: mantém os dados locais já exibidos */ }
+}
+
+/* ===================== INIT ===================== */
+renderView();
+</script>
+</body>
+</html>
