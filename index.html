@@ -37,24 +37,44 @@
   .navspacer{flex:1;}
   .navfields{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
   .field{background:rgba(0,0,0,.6);border:1px solid #3a3a3a;border-radius:4px;padding:8px 10px;color:var(--text);font-size:12px;font-family:var(--mono);outline:none;width:150px;}
-  .field:focus{border-color:var(--text);background:rgba(0,0,0,.85);width:220px;transition:width .2s;}
+  .field:focus{border-color:var(--text);background:rgba(0,0,0,.85);}
   .field::placeholder{color:#777;}
-  select.field{width:150px;-webkit-appearance:none;appearance:none;cursor:pointer;}
+  select.field{-webkit-appearance:none;appearance:none;cursor:pointer;}
   .btn{background:var(--red);color:#fff;border-radius:4px;padding:8px 14px;font-weight:600;font-size:12px;white-space:nowrap;}
   .btn:hover{background:#f6121d;}
   .btn.ghost{background:rgba(255,255,255,.08);color:var(--text);}
   .btn.ghost:hover{background:rgba(255,255,255,.16);}
   #menuToggle{display:none;background:none;color:var(--text);font-size:22px;}
+  #settingsToggle{display:flex;align-items:center;gap:6px;}
 
-  #importBar{display:none;position:fixed;top:64px;left:0;right:0;z-index:99;background:#0A0A0A;border-bottom:1px solid var(--line);padding:14px 4vw;}
-  #importBar.open{display:block;}
-  #importBar textarea{width:100%;min-height:100px;background:var(--panel);border:1px solid var(--line);color:var(--text);font-family:var(--mono);font-size:12px;border-radius:6px;padding:10px;}
-  #importBar .row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
+  /* ---------------- DRAWER (configurar lista) ---------------- */
+  .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:290;display:none;}
+  .drawer-overlay.open{display:block;}
+  .drawer{
+    position:fixed;top:0;right:-380px;width:360px;max-width:90vw;height:100%;
+    background:#111214;border-left:1px solid var(--line);z-index:300;
+    transition:right .25s ease;overflow-y:auto;
+  }
+  .drawer.open{right:0;}
+  .drawer-header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--line);}
+  .drawer-header h3{font-family:var(--display);font-size:20px;letter-spacing:1px;}
+  .drawer-header button{background:rgba(255,255,255,.08);color:var(--text);width:32px;height:32px;border-radius:50%;font-size:16px;}
+  .drawer-body{padding:20px;display:flex;flex-direction:column;gap:18px;}
+  .drawer-section label{display:block;font-size:11px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+  .drawer-section .field{width:100%;}
+  .drawer-section .row{display:flex;gap:8px;margin-top:8px;}
+  .drawer-section .row .btn{flex:1;}
+  .drawer-section p.hint{font-size:11px;color:#777;margin-top:6px;line-height:1.5;}
+  #pasteArea{display:none;margin-top:10px;}
+  #pasteArea.open{display:block;}
+  #pasteArea textarea{width:100%;min-height:110px;background:var(--panel);border:1px solid var(--line);color:var(--text);font-family:var(--mono);font-size:12px;border-radius:6px;padding:10px;}
+  .drawer-divider{height:1px;background:var(--line);}
 
-  .hero{position:relative;height:78vh;min-height:420px;display:flex;align-items:flex-end;padding:0 4vw 6vw;background:linear-gradient(120deg,#241010 0%,#0A0A0A 70%);overflow:hidden;}
+  /* ---------------- HERO ---------------- */
+  .hero{position:relative;height:76vh;min-height:420px;display:flex;align-items:flex-end;padding:0 4vw 5vw;background:linear-gradient(120deg,#241010 0%,#0A0A0A 70%);overflow:hidden;}
   .hero-bg{position:absolute;inset:0;background-size:cover;background-position:center 20%;opacity:0;transition:opacity .6s ease;filter:brightness(.55);}
   .hero-bg.show{opacity:1;}
-  .hero::after{content:'';position:absolute;inset:0;background:linear-gradient(0deg, var(--bg) 0%, rgba(10,10,10,.2) 45%, rgba(10,10,10,.1) 100%);}
+  .hero::after{content:'';position:absolute;inset:0;background:linear-gradient(0deg, var(--bg) 0%, rgba(10,10,10,.15) 55%, rgba(10,10,10,.05) 100%);}
   .hero-content{position:relative;z-index:2;max-width:640px;}
   .hero-eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:10px;}
   .hero-title{font-family:var(--display);font-size:clamp(38px,7vw,72px);line-height:0.95;letter-spacing:1px;margin-bottom:14px;text-shadow:0 4px 20px rgba(0,0,0,.6);}
@@ -68,10 +88,12 @@
   .hero-empty{position:relative;z-index:2;max-width:600px;}
   .hero-empty .tuner-icon{font-size:40px;margin-bottom:14px;}
 
-  .toolbar{display:flex;align-items:center;gap:10px;padding:0 4vw;margin:-4vw 0 18px;position:relative;z-index:4;flex-wrap:wrap;}
+  /* ---------------- TOOLBAR / ROWS (fluxo normal, sem sobreposição) ---------------- */
+  .toolbar{display:none;align-items:center;gap:10px;padding:20px 4vw 0;flex-wrap:wrap;}
   .toolbar label{font-size:11px;color:var(--muted);font-family:var(--mono);}
+  .toolbar select.field{width:180px;}
 
-  .rows{padding:0 0 60px;margin-top:-8vw;position:relative;z-index:3;}
+  .rows{padding:16px 0 60px;}
   .row-block{margin-bottom:32px;position:relative;}
   .row-head{display:flex;align-items:center;justify-content:space-between;padding:0 4vw;margin-bottom:8px;}
   .row-head h3{font-size:18px;font-weight:700;}
@@ -100,7 +122,11 @@
   }
   .rcard.live{width:230px;}
   .rcard:hover{transform:scale(1.1) translateY(-6px);box-shadow:0 12px 30px rgba(0,0,0,.7);z-index:5;}
-  .rcard .thumb{width:100%;aspect-ratio:2/3;object-fit:cover;background:#222;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:22px;text-align:center;padding:6px;}
+  .rcard .thumb{
+    width:100%;aspect-ratio:2/3;object-fit:contain;background:#131313;
+    display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:22px;
+    text-align:center;padding:10px;
+  }
   .rcard.live .thumb{aspect-ratio:16/9;font-size:26px;}
   .rcard .rcard-info{padding:8px 9px;}
   .rcard .rcard-title{font-size:12px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
@@ -115,7 +141,7 @@
   .load-more-card:hover{color:var(--text);border-color:#555;}
   .load-more-card .plus{font-size:22px;color:var(--red);}
 
-  .empty-state{padding:120px 4vw 60px;text-align:center;color:var(--muted);}
+  .empty-state{padding:100px 4vw 60px;text-align:center;color:var(--muted);}
   .empty-state .tuner-icon{font-size:48px;margin-bottom:16px;}
   .empty-state h3{font-family:var(--display);font-size:28px;color:var(--text);margin-bottom:8px;letter-spacing:1px;}
   .empty-state p{font-size:14px;max-width:460px;margin:0 auto;line-height:1.7;}
@@ -161,7 +187,7 @@
   .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:150;display:none;align-items:center;justify-content:center;padding:20px;}
   .modal-bg.open{display:flex;}
   .modal{background:#181818;border-radius:10px;max-width:640px;width:100%;max-height:88vh;overflow-y:auto;position:relative;}
-  .modal-hero{position:relative;height:260px;background-size:cover;background-position:center;display:flex;align-items:flex-end;padding:24px;}
+  .modal-hero{position:relative;height:260px;background-size:contain;background-repeat:no-repeat;background-position:center;background-color:#111;display:flex;align-items:flex-end;padding:24px;}
   .modal-hero::after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,#181818 5%,rgba(24,24,24,.1) 70%);}
   .modal-hero h3{position:relative;z-index:2;font-family:var(--display);font-size:34px;letter-spacing:1px;}
   .modal-close{position:absolute;top:16px;right:16px;z-index:5;background:rgba(0,0,0,.6);color:#fff;width:34px;height:34px;border-radius:50%;font-size:18px;}
@@ -182,11 +208,7 @@
   @media (max-width:860px){
     .navlinks{display:none;}
     #menuToggle{display:inline-flex;align-items:center;justify-content:center;}
-    .navfields .field{width:120px;}
-    .navfields .field:focus{width:160px;}
-    .hero{height:60vh;padding:0 5vw 14vw;}
-    .toolbar{margin-top:-16vw;}
-    .rows{margin-top:0;}
+    .hero{height:58vh;padding:0 5vw 10vw;}
     .rcard{width:130px;}
     .rcard.live{width:190px;}
   }
@@ -208,12 +230,7 @@
   <div class="navspacer"></div>
   <div class="navfields">
     <input class="field" id="searchBox" placeholder="Buscar...">
-    <input class="field" id="m3uUrl" placeholder="URL da lista .m3u/.m3u8">
-    <button class="btn" id="loadBtn">Carregar</button>
-    <button class="btn ghost" id="pasteToggle">Colar M3U</button>
-    <input class="field" id="omdbKey" placeholder="Chave OMDb (opcional)">
-    <input class="field" id="epgUrl" placeholder="URL EPG (opcional)">
-    <button class="btn ghost" id="loadEpgBtn">Carregar EPG</button>
+    <button class="btn ghost" id="settingsToggle">⚙ Lista</button>
   </div>
 </nav>
 
@@ -223,14 +240,54 @@
   <div class="navlink" data-cat="series">Séries</div>
 </div>
 
-<div id="importBar">
-  <p style="font-size:12px;color:var(--muted);margin-bottom:8px;">Cole aqui o conteúdo bruto do arquivo .m3u (use isso se a URL for bloqueada por CORS):</p>
-  <textarea id="pasteText" placeholder="#EXTM3U
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<div class="drawer" id="settingsDrawer">
+  <div class="drawer-header">
+    <h3>Configurar lista</h3>
+    <button id="drawerClose">✕</button>
+  </div>
+  <div class="drawer-body">
+    <div class="drawer-section">
+      <label>URL da lista (.m3u / .m3u8)</label>
+      <input class="field" id="m3uUrl" placeholder="http://.../get.php?...&type=m3u_plus">
+      <div class="row">
+        <button class="btn" id="loadBtn">Carregar lista</button>
+        <button class="btn ghost" id="pasteToggle">Colar M3U</button>
+      </div>
+      <div id="pasteArea">
+        <textarea id="pasteText" placeholder="#EXTM3U
 #EXTINF:-1 tvg-name=&quot;Exemplo&quot; group-title=&quot;Filmes&quot;,Nome do item
 http://link-do-stream..."></textarea>
-  <div class="row">
-    <button class="btn" id="pasteLoadBtn">Usar este conteúdo</button>
-    <button class="btn ghost" id="pasteCancel">Fechar</button>
+        <div class="row"><button class="btn" id="pasteLoadBtn">Usar este conteúdo</button></div>
+      </div>
+      <p class="hint">Se a URL não carregar (bloqueio de CORS), baixe o arquivo .m3u, copie o conteúdo e use "Colar M3U", ou use "Selecionar arquivo .m3u" abaixo.</p>
+
+      <div class="drawer-divider" style="margin:14px 0;"></div>
+
+      <label>Ou selecione um arquivo do computador</label>
+      <input type="file" id="m3uFileInput" accept=".m3u,.m3u8,text/plain" style="display:none;">
+      <div class="row">
+        <button class="btn ghost" id="m3uFileBtn" style="flex:1;">📁 Selecionar arquivo .m3u</button>
+      </div>
+      <p class="hint" id="m3uFileName"></p>
+    </div>
+
+    <div class="drawer-divider"></div>
+
+    <div class="drawer-section">
+      <label>Chave OMDb (opcional)</label>
+      <input class="field" id="omdbKey" placeholder="Sinopse, elenco e nota IMDb">
+      <p class="hint">Sem chave, os cards já mostram os dados extraídos da própria lista (ano, qualidade, grupo).</p>
+    </div>
+
+    <div class="drawer-divider"></div>
+
+    <div class="drawer-section">
+      <label>URL EPG / XMLTV (opcional)</label>
+      <input class="field" id="epgUrl" placeholder="URL do guia de programação">
+      <div class="row"><button class="btn ghost" id="loadEpgBtn">Carregar EPG</button></div>
+      <p class="hint">Detectado automaticamente quando presente no cabeçalho da lista.</p>
+    </div>
   </div>
 </div>
 
@@ -248,13 +305,13 @@ http://link-do-stream..."></textarea>
   <div class="hero-empty" id="heroEmpty">
     <div class="tuner-icon" id="heroEmptyIcon">📡</div>
     <div class="hero-title" id="heroEmptyTitle" style="font-size:clamp(30px,6vw,56px);">Sua playlist,<br>do seu jeito.</div>
-    <div class="hero-desc" id="heroEmptyDesc">Cole o link de uma lista M3U ou M3U8 no topo da página para começar a assistir TV ao vivo, filmes e séries.</div>
+    <div class="hero-desc" id="heroEmptyDesc">Abra o menu "⚙ Lista" no topo da página e cole o link de uma lista M3U ou M3U8 para começar a assistir TV ao vivo, filmes e séries.</div>
   </div>
 </div>
 
-<div class="toolbar" id="toolbar" style="display:none;">
+<div class="toolbar" id="toolbar">
   <label>Ordenar por</label>
-  <select class="field" id="sortSelect" style="width:170px;">
+  <select class="field" id="sortSelect">
     <option value="relevance">Relevância</option>
     <option value="name">Nome (A-Z)</option>
     <option value="year">Mais recentes</option>
@@ -266,7 +323,7 @@ http://link-do-stream..."></textarea>
   <div class="empty-state">
     <div class="tuner-icon">🛰️</div>
     <h3>Nenhuma lista carregada</h3>
-    <p>Cole a URL da sua playlist no campo do topo e clique em "Carregar". Se o servidor bloquear o acesso direto do navegador (erro de CORS), baixe o arquivo .m3u, copie o conteúdo e use "Colar M3U".</p>
+    <p>Abra o menu "⚙ Lista" no topo da página, cole a URL da sua playlist e clique em "Carregar lista".</p>
   </div>
 </div>
 
@@ -313,20 +370,28 @@ let liveSelectedGroup = null;
 let hls = null;
 let currentModalSeries = null;
 let sortMode = 'relevance';
-let epgData = {};              // tvgId -> [{start, stop, title}]
-let currentEpisodeContext = null; // {entry, index} quando tocando episódio de série
+let epgData = {};
+let currentEpisodeContext = null;
 let activeItem = null;
 let liveRetryCount = 0;
 let nextEpTimer = null;
+let nextPromptShown = false;
 const PAGE_SIZE = 24;
 const MAX_ROWS_INITIAL = 6;
+const NEXT_EP_THRESHOLD_SEC = 60; // dispara aviso de próximo episódio faltando 1 min
 
 const el = id => document.getElementById(id);
 const rowsEl = el('rows');
 
-/* ===================== NAV ===================== */
+/* ===================== NAV / DRAWER ===================== */
 window.addEventListener('scroll', ()=> el('mainNav').classList.toggle('scrolled', window.scrollY > 40));
 el('menuToggle').addEventListener('click', ()=> el('mobileNav').classList.toggle('open'));
+
+function openDrawer(){ el('settingsDrawer').classList.add('open'); el('drawerOverlay').classList.add('open'); }
+function closeDrawer(){ el('settingsDrawer').classList.remove('open'); el('drawerOverlay').classList.remove('open'); }
+el('settingsToggle').addEventListener('click', openDrawer);
+el('drawerClose').addEventListener('click', closeDrawer);
+el('drawerOverlay').addEventListener('click', closeDrawer);
 
 function setCategory(cat){
   currentCategory = cat;
@@ -337,9 +402,7 @@ function setCategory(cat){
 }
 document.querySelectorAll('.navlink').forEach(n=> n.addEventListener('click', ()=> setCategory(n.dataset.cat)));
 
-el('pasteToggle').addEventListener('click', ()=> el('importBar').classList.toggle('open'));
-el('pasteCancel').addEventListener('click', ()=> el('importBar').classList.remove('open'));
-
+el('pasteToggle').addEventListener('click', ()=> el('pasteArea').classList.toggle('open'));
 el('sortSelect').addEventListener('change', ()=>{ sortMode = el('sortSelect').value; renderView(); });
 
 /* ===================== PARSING & CATEGORIZAÇÃO ===================== */
@@ -386,7 +449,6 @@ function cleanTitle(name){
     .replace(/\s+/g,' ')
     .trim();
 }
-
 function detectEpgUrl(text){
   const headerLine = (text.split(/\r?\n/)[0]||'');
   const m = headerLine.match(/url-tvg="([^"]*)"/i) || headerLine.match(/x-tvg-url="([^"]*)"/i);
@@ -447,7 +509,7 @@ function ingest(text){
   if(!parsed.length){ alert('Nenhum item #EXTINF encontrado. Verifique se o conteúdo é uma playlist M3U válida.'); return; }
   items = parsed;
   liveSelectedGroup = null;
-  el('importBar').classList.remove('open');
+  closeDrawer();
   el('toolbar').style.display = 'flex';
   updateNavCounts();
 
@@ -459,7 +521,7 @@ function ingest(text){
   renderView();
 }
 function setLoadingState(loading){
-  el('loadBtn').textContent = loading ? '...' : 'Carregar';
+  el('loadBtn').textContent = loading ? '...' : 'Carregar lista';
   el('loadBtn').disabled = loading;
 }
 el('loadBtn').addEventListener('click', ()=>{
@@ -471,6 +533,23 @@ el('pasteLoadBtn').addEventListener('click', ()=>{
   const text = el('pasteText').value;
   if(!text.trim()) return alert('Cole o conteúdo do arquivo M3U primeiro.');
   ingest(text);
+});
+el('m3uFileBtn').addEventListener('click', ()=> el('m3uFileInput').click());
+el('m3uFileInput').addEventListener('change', (e)=>{
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  el('m3uFileName').textContent = 'Lendo "'+file.name+'"...';
+  const reader = new FileReader();
+  reader.onload = () => {
+    el('m3uFileName').textContent = 'Arquivo carregado: '+file.name;
+    ingest(String(reader.result));
+  };
+  reader.onerror = () => {
+    el('m3uFileName').textContent = '';
+    alert('Não foi possível ler o arquivo. Tente novamente ou use "Colar M3U".');
+  };
+  reader.readAsText(file);
+  e.target.value = ''; // permite selecionar o mesmo arquivo de novo depois
 });
 el('loadEpgBtn').addEventListener('click', ()=>{
   const url = el('epgUrl').value.trim();
@@ -580,7 +659,7 @@ function showFeaturedHero(item, eyebrow, extraDesc){
   else el('heroBg').classList.remove('show');
 }
 function emptyStateNoList(){
-  return `<div class="empty-state"><div class="tuner-icon">🛰️</div><h3>Nenhuma lista carregada</h3><p>Cole a URL da sua playlist no campo do topo e clique em "Carregar". Se o servidor bloquear o acesso direto do navegador (erro de CORS), baixe o arquivo .m3u, copie o conteúdo e use "Colar M3U".</p></div>`;
+  return `<div class="empty-state"><div class="tuner-icon">🛰️</div><h3>Nenhuma lista carregada</h3><p>Abra o menu "⚙ Lista" no topo da página, cole a URL da sua playlist e clique em "Carregar lista".</p></div>`;
 }
 function emptyStateHtml(icon,title,desc){
   return `<div class="empty-state"><div class="tuner-icon">${icon}</div><h3>${title}</h3><p>${desc}</p></div>`;
@@ -588,10 +667,10 @@ function emptyStateHtml(icon,title,desc){
 
 /* ===================== VIEW DISPATCH ===================== */
 function renderView(){
-  if(!items.length) el('toolbar').style.display = 'none';
+  el('toolbar').style.display = items.length ? 'flex' : 'none';
   if(currentCategory === 'live'){
     if(!items.length){
-      showEmptyHero('🛰️','Sua playlist,<br>do seu jeito.','Cole o link de uma lista M3U ou M3U8 no topo da página para começar a assistir TV ao vivo, filmes e séries.');
+      showEmptyHero('🛰️','Sua playlist,<br>do seu jeito.','Abra o menu "⚙ Lista" no topo da página e cole o link de uma lista M3U ou M3U8 para começar.');
       rowsEl.innerHTML = emptyStateNoList();
       return;
     }
@@ -663,7 +742,7 @@ function renderMovieView(){
   if(term) list = list.filter(i=>i.name.toLowerCase().includes(term));
 
   if(!items.length){
-    showEmptyHero('🛰️','Sua playlist,<br>do seu jeito.','Cole o link de uma lista M3U ou M3U8 no topo da página para começar a assistir TV ao vivo, filmes e séries.');
+    showEmptyHero('🛰️','Sua playlist,<br>do seu jeito.','Abra o menu "⚙ Lista" no topo da página e cole o link de uma lista M3U ou M3U8 para começar.');
     rowsEl.innerHTML = emptyStateNoList();
     return;
   }
@@ -700,14 +779,24 @@ function groupSeriesFlat(list){
     title = title.replace(/[-_.\s]+$/,'').trim() || item.name;
     const key = (item.group+'|'+title).toLowerCase();
     if(!map.has(key)){
-      map.set(key, {name:title, logo:item.logo, group:item.group, category:'series', year:item.year||'', episodes:[]});
+      map.set(key, {name:title, logo:'', group:item.group, category:'series', year:item.year||'', episodes:[], _logoCounts:{}});
     }
     const entry = map.get(key);
-    if(!entry.logo && item.logo) entry.logo = item.logo;
+    if(item.logo) entry._logoCounts[item.logo] = (entry._logoCounts[item.logo]||0) + 1;
     entry.episodes.push({season: parsed?parsed.season:1, episode: parsed?parsed.episode:(entry.episodes.length+1), item});
   });
   const arr = Array.from(map.values());
-  arr.forEach(s=> s.episodes.sort((a,b)=> a.season-b.season || a.episode-b.episode));
+  arr.forEach(s=>{
+    s.episodes.sort((a,b)=> a.season-b.season || a.episode-b.episode);
+    // usa o pôster/logo que mais se repete entre os episódios: é o retrato mais provável da série
+    // (evita pegar por acaso a miniatura de um único episódio "fora do padrão")
+    let bestLogo = '', bestCount = 0;
+    for(const [logoUrl, count] of Object.entries(s._logoCounts)){
+      if(count > bestCount){ bestCount = count; bestLogo = logoUrl; }
+    }
+    s.logo = bestLogo;
+    delete s._logoCounts;
+  });
   return arr;
 }
 function firstEpisode(seriesEntry){ return seriesEntry.episodes[0]; }
@@ -718,7 +807,7 @@ function renderSeriesView(){
   if(term) list = list.filter(i=>i.name.toLowerCase().includes(term));
 
   if(!items.length){
-    showEmptyHero('🛰️','Sua playlist,<br>do seu jeito.','Cole o link de uma lista M3U ou M3U8 no topo da página para começar a assistir TV ao vivo, filmes e séries.');
+    showEmptyHero('🛰️','Sua playlist,<br>do seu jeito.','Abra o menu "⚙ Lista" no topo da página e cole o link de uma lista M3U ou M3U8 para começar.');
     rowsEl.innerHTML = emptyStateNoList();
     return;
   }
@@ -847,7 +936,7 @@ function buildCard(item){
       div.className = 'thumb';
       div.textContent = placeholderIcon;
       imgTag.replaceWith(div);
-    });
+    }, {once:true});
   }
   card.onclick = () => item.category==='live' ? playItem(item) : showModal(item);
   return card;
@@ -892,6 +981,7 @@ function resetPlayerControls(){
   el('subtitleSelect').style.display='none'; el('subtitleSelect').innerHTML='';
   el('qualitySelect').style.display='none'; el('qualitySelect').innerHTML='';
   el('nextEpOverlay').style.display='none';
+  nextPromptShown = false;
   if(nextEpTimer){ clearInterval(nextEpTimer); nextEpTimer=null; }
 }
 
@@ -976,7 +1066,7 @@ el('pipBtn').addEventListener('click', async ()=>{
 });
 
 el('videoEl').addEventListener('error', ()=>{
-  if(hls || !activeItem) return; // erro tratado pelo hls.js nesse caso
+  if(hls || !activeItem) return;
   if(liveRetryCount < 5){
     liveRetryCount++;
     setTimeout(()=>{
@@ -987,11 +1077,24 @@ el('videoEl').addEventListener('error', ()=>{
   }
 });
 
+/* dispara o aviso de "próximo episódio" quando falta ~1 min pra acabar */
+el('videoEl').addEventListener('timeupdate', ()=>{
+  if(!currentEpisodeContext || nextPromptShown) return;
+  const video = el('videoEl');
+  if(!video.duration || !isFinite(video.duration)) return;
+  if(video.duration - video.currentTime <= NEXT_EP_THRESHOLD_SEC){
+    const {entry, index} = currentEpisodeContext;
+    const next = entry.episodes[index+1];
+    if(next){ nextPromptShown = true; showNextEpisodePrompt(entry, index+1, next); }
+  }
+});
+/* fallback: caso a duração não seja confiável e o vídeo termine sem ter disparado acima */
 el('videoEl').addEventListener('ended', ()=>{
-  if(!currentEpisodeContext) return;
+  if(!currentEpisodeContext || nextPromptShown) return;
   const {entry, index} = currentEpisodeContext;
   const next = entry.episodes[index+1];
   if(!next) return;
+  nextPromptShown = true;
   showNextEpisodePrompt(entry, index+1, next);
 });
 
@@ -1053,7 +1156,6 @@ async function showModal(item){
   currentModalSeries = item.episodes ? item : null;
   el('modalTitle').textContent = item.name;
   el('modalHero').style.backgroundImage = item.logo ? `url('${item.logo}')` : 'none';
-  el('modalHero').style.backgroundColor = '#222';
 
   const localBadges = [];
   if(item.group) localBadges.push(`<span class="badge">${escapeHtml(item.group)}</span>`);
@@ -1081,7 +1183,7 @@ async function showModal(item){
     el('modalPlay').onclick = () => { modalBg.classList.remove('open'); playItem(item); };
     el('modalBody').innerHTML = epgHtml || ((item.year || item.duration)
       ? `<p>Informações extraídas diretamente da sua lista M3U.</p>`
-      : `<p>Nenhuma informação adicional disponível na sua lista para este item. Adicione uma chave OMDb (opcional, no topo da página) para tentar buscar sinopse e nota do IMDb.</p>`);
+      : `<p>Nenhuma informação adicional disponível na sua lista para este item. Adicione uma chave OMDb (opcional, no menu "⚙ Lista") para tentar buscar sinopse e nota do IMDb.</p>`);
   }
   modalBg.classList.add('open');
 
